@@ -1,5 +1,23 @@
 [
   {
+    "Id": "0b7d1f4e-6a2c-4c8e-9f3a-5d1e7c2b9a01",
+    "Command": "Receive-OmzigSentinelTimer",
+    "Description": "omzig.ai overlay: break-glass sign-in sentinel (Modules/Omzig)",
+    "Cron": "0 */5 * * * *",
+    "Priority": 0,
+    "RunOnProcessor": true,
+    "IsSystem": true
+  },
+  {
+    "Id": "6e3c9a7b-2d4f-4b1e-8c5a-9f0d3e7a1b62",
+    "Command": "Receive-OmzigGdapSentinelTimer",
+    "Description": "omzig.ai overlay: daily GDAP relationship expiry sentinel (Modules/Omzig)",
+    "Cron": "0 0 13 * * *",
+    "Priority": 1,
+    "RunOnProcessor": true,
+    "IsSystem": true
+  },
+  {
     "Id": "c0c48d71-7918-4828-bc25-0e8c28a171a2",
     "Command": "Start-DurableCleanup",
     "Description": "Timer function to cleanup durable functions",
@@ -292,24 +310,6 @@
     "Description": "Sample container log health into the InstanceHealth table",
     "Cron": "0 */5 * * * *",
     "Priority": 0,
-    "RunOnProcessor": true,
-    "IsSystem": true
-  },
-  {
-    "Id": "0b7d1f4e-6a2c-4c8e-9f3a-5d1e7c2b9a01",
-    "Command": "Receive-OmzigSentinelTimer",
-    "Description": "omzig.ai overlay: break-glass sign-in sentinel (Modules/Omzig)",
-    "Cron": "0 */5 * * * *",
-    "Priority": 0,
-    "RunOnProcessor": true,
-    "IsSystem": true
-  },
-  {
-    "Id": "6e3c9a7b-2d4f-4b1e-8c5a-9f0d3e7a1b62",
-    "Command": "Receive-OmzigGdapSentinelTimer",
-    "Description": "omzig.ai overlay: daily GDAP relationship expiry sentinel (Modules/Omzig)",
-    "Cron": "0 0 13 * * *",
-    "Priority": 1,
     "RunOnProcessor": true,
     "IsSystem": true
   }

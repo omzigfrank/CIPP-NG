@@ -7,8 +7,11 @@
 # Tags: <upstream version>-omzig.<run number> (what the Web App runs) and latest.
 # APP_VERSION stays the plain upstream version so CIPP's own version checks behave as upstream.
 #
-# Deploy: only when the repository variable OMZIG_AUTO_DEPLOY is 'true'. It points the Web App
-# at the exact new tag (never :latest, so nothing changes without a deploy) and restarts it.
+# Deploy: when the repository variable OMZIG_AUTO_DEPLOY is 'true' (automatic updates, on since
+# 2026-10-06), or on a manual run with deploy=true. It points the Web App at the exact new tag
+# (never :latest, so nothing changes without a deploy), restarts it, and requires it to be healthy
+# and serving that tag within 15 minutes; otherwise it restores the previous image and files a
+# critical issue. omzig-upstream-sync.yml starts this workflow after merging an upstream release.
 name: Omzig Image
 
 on:
@@ -38,8 +41,10 @@ concurrency:
 env:
   REGISTRY: cippwemixacr.azurecr.io
   IMAGE: cipp
-  # Pinned Craft runtime base; bump deliberately (upstream builds on the floating :latest).
-  CRAFT_BASE: ghcr.io/cyberdrain/craft:1.0.19
+  # Craft runtime base. Follows :latest like upstream's own release build, because updates are
+  # automatic: a new CIPP release can need the Craft that shipped with it, and a pin would fall
+  # behind unattended. The resolved version is written to the run summary.
+  CRAFT_BASE: ghcr.io/cyberdrain/craft:latest
   AZURE_CLIENT_ID: 3308515d-8cc1-4a97-b50a-0ff937299deb
   AZURE_TENANT_ID: b7060bc5-9f4b-4c46-9639-1c408bf1d6f9
   AZURE_SUBSCRIPTION_ID: 48019666-dd78-439e-9890-030ab5156f23
@@ -102,13 +107,19 @@ jobs:
       - name: Summary
         env:
           TAG: ${{ steps.meta.outputs.tag }}
-        run: echo "Pushed ${REGISTRY}/${IMAGE}:${TAG}" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          CRAFT_DIGEST="$(docker buildx imagetools inspect "$CRAFT_BASE" --format '{{json .Manifest.Digest}}' 2>/dev/null || echo unknown)"
+          echo "Pushed ${REGISTRY}/${IMAGE}:${TAG} on ${CRAFT_BASE} (${CRAFT_DIGEST})" >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     needs: build
     if: vars.OMZIG_AUTO_DEPLOY == 'true' || github.event.inputs.deploy == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
+    permissions:
+      id-token: write
+      contents: read
+      issues: write
     steps:
       - uses: azure/login@v2
         with:
@@ -116,17 +127,54 @@ jobs:
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Point the Web App at the new tag and restart
+      # Deploy the exact new tag, then require the app to be healthy AND serving that tag
+      # (version.json) within 15 minutes. Otherwise put the previous image back, check it
+      # recovers, and file an issue, so a bad upstream release never stays live unattended.
+      - name: Deploy, verify, and roll back on failure
         env:
           TAG: ${{ needs.build.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          az webapp config container set --name "$WEBAPP" --resource-group "$RESOURCE_GROUP" \
-            --container-image-name "${REGISTRY}/${IMAGE}:${TAG}" --output none
-          az webapp restart --name "$WEBAPP" --resource-group "$RESOURCE_GROUP"
-          for i in $(seq 1 40); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "https://${WEBAPP}.azurewebsites.net/api/setup/health" || true)
-            if [ "$code" = "200" ]; then echo "Healthy on ${TAG}"; echo "Deployed ${TAG}" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
-            sleep 15
-          done
-          echo "::error::${WEBAPP} did not report healthy within 10 minutes of deploying ${TAG}"
+          NEW="${REGISTRY}/${IMAGE}:${TAG}"
+          PREV="$(az webapp config show --name "$WEBAPP" --resource-group "$RESOURCE_GROUP" --query linuxFxVersion -o tsv)"
+          PREV="${PREV#DOCKER|}"
+          echo "Running: ${PREV}"
+          echo "New:     ${NEW}"
+          if [ "$PREV" = "$NEW" ]; then echo "Already running ${NEW}"; exit 0; fi
+
+          deploy() {
+            az webapp config container set --name "$WEBAPP" --resource-group "$RESOURCE_GROUP" \
+              --container-image-name "$1" --output none
+            az webapp restart --name "$WEBAPP" --resource-group "$RESOURCE_GROUP"
+          }
+          serving() {
+            for i in $(seq 1 60); do
+              h=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://${WEBAPP}.azurewebsites.net/api/setup/health" || true)
+              t=$(curl -s --max-time 20 "https://${WEBAPP}.azurewebsites.net/version.json" | jq -r '.tag // empty' 2>/dev/null || true)
+              if [ "$h" = "200" ] && [ "$t" = "$1" ]; then return 0; fi
+              sleep 15
+            done
+            return 1
+          }
+
+          deploy "$NEW"
+          if serving "$TAG"; then
+            echo "Deployed ${TAG}; healthy and serving it." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "::error::${WEBAPP} was not healthy on ${TAG} within 15 minutes; rolling back to ${PREV}"
+          deploy "$PREV"
+          PREV_TAG="${PREV##*:}"
+          if serving "$PREV_TAG"; then
+            RESULT="Rolled back to \`${PREV_TAG}\`, which is healthy again."
+          else
+            RESULT="Rolled back to \`${PREV_TAG}\`, but it has NOT reported healthy: the portal may be down. Follow OUTAGE.md."
+          fi
+          echo "$RESULT" >> "$GITHUB_STEP_SUMMARY"
+          gh issue create --repo "$GITHUB_REPOSITORY" --label cipp-health --label critical \
+            --title "Automatic deploy of ${TAG} failed" \
+            --body "The Omzig Image workflow deployed \`${NEW}\` to \`${WEBAPP}\`, but it did not report healthy on that tag within 15 minutes. ${RESULT}
+
+          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           exit 1

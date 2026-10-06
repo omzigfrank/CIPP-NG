@@ -1,0 +1,99 @@
+# omzig.ai: keep CIPP up to date automatically.
+#
+# Daily, merge upstream CIPP (the CyberDrain/CIPP monorepo, main = the release branch) into our
+# main, then start omzig-image.yml, which builds our image and, with OMZIG_AUTO_DEPLOY=true,
+# deploys it with health verification and automatic rollback.
+#
+# A merge that conflicts with the omzig.ai overlay is aborted (nothing half-applies, nothing
+# deploys) and files one critical issue, which the weekly health check also reports to the ops
+# chat. pull[bot] may sync the same branch too (.github/pull.yml); whichever runs second finds
+# nothing to do.
+#
+# Every gh call passes --repo: in a fork with an 'upstream' remote, gh otherwise targets the
+# parent, i.e. CyberDrain's public repository.
+name: Omzig Upstream Sync
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # daily 07:00 UTC (03:00 ET), outside working hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: omzig-upstream-sync
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: CyberDrain/CIPP
+  UPSTREAM_BRANCH: main
+  TARGET_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+
+      - name: Merge upstream and start the image build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUTO_DEPLOY: ${{ vars.OMZIG_AUTO_DEPLOY }}
+        run: |
+          git config user.name 'omzig-portal-bot'
+          git config user.email 'hello@omzig.it'
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
+
+          if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "Up to date with ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          UP_SHA="$(git rev-parse --short FETCH_HEAD)"
+          UP_VER="$(git show FETCH_HEAD:backend/version_latest.txt | tr -d '\r\n ')"
+          case "$UP_VER" in ''|*[!0-9.]*) UP_VER='unknown version' ;; esac
+
+          # Merge without committing, then keep OUR .github/workflows and .github/pull.yml:
+          # upstream's CI is CyberDrain-only or disabled here, and GITHUB_TOKEN may not push
+          # workflow-file changes at all. Everything else merges normally.
+          git merge --no-ff --no-commit FETCH_HEAD || true
+          git checkout HEAD -- .github/workflows .github/pull.yml
+          git diff --cached --name-only --diff-filter=A HEAD -- .github/workflows | xargs -r git rm -q -f --
+          if [ -z "$(git diff --name-only --diff-filter=U)" ]; then
+            git commit -q --no-edit -m "Merge ${UPSTREAM_REPO}@${UP_SHA} (${UP_VER})" \
+              -m "Automatic upstream sync. Keeps omzig.ai's .github/workflows and .github/pull.yml."
+            git push origin "HEAD:${TARGET_BRANCH}"
+            # A push made with GITHUB_TOKEN does not start other workflows, so start the build here.
+            DEPLOY="false"; [ "$AUTO_DEPLOY" = "true" ] && DEPLOY="true"
+            gh workflow run omzig-image.yml --repo "$GITHUB_REPOSITORY" --ref "$TARGET_BRANCH" -f deploy="$DEPLOY"
+            echo "Merged ${UPSTREAM_REPO} ${UP_VER} (${UP_SHA}); image build started, deploy=${DEPLOY}." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          FILES="$(git diff --name-only --diff-filter=U | head -25 | sed 's/^/- `/; s/$/`/')"
+          git merge --abort
+          TITLE="Upstream sync conflict: ${UPSTREAM_REPO} ${UP_VER}"
+          OPEN="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"${TITLE}\" in:title" --json number -q '.[0].number')"
+          if [ -z "$OPEN" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --label cipp-health --label critical \
+              --title "$TITLE" \
+              --body "Automatic updates are blocked: merging \`${UPSTREAM_REPO}@${UP_SHA}\` (${UP_VER}) into \`${TARGET_BRANCH}\` conflicts with the omzig.ai overlay. Nothing was merged or deployed; production stays on its current version.
+
+          Conflicting files:
+          ${FILES}
+
+          Resolve locally (runbook section 7, \"Unblocking a conflicted sync PR\"), push to \`${TARGET_BRANCH}\`, and the image build and deploy run on their own. The usual suspects are \`backend/Config/CIPPTimers.json\` and \`build/Dockerfile.release\`.
+
+          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          else
+            echo "Issue #${OPEN} already tracks this conflict."
+          fi
+          echo "::error::Merging ${UPSTREAM_REPO} ${UP_VER} conflicts with the overlay; automatic updates are blocked."
+          exit 1
