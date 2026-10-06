@@ -1,6 +1,6 @@
 # CIPP container migration plan (CIPP NG)
 
-**Status:** proposal, 2026-10-06. Needs the owner decisions in [§9](#9-decisions-needed-from-frank) before Phase 1 starts.
+**Status:** EXECUTED 2026-10-06 (cut over at 23:15Z). Phases 0-4 were compressed into one evening at Frank's request. Two deviations from this plan: the image is in Azure Container Registry `cippwemixacr` (pulled with the app's identity) instead of GHCR, and verification ran on the real Web App with a paused schedule instead of a separate staging resource group. Phase 5 (decommission) is due 2026-10-20.
 **Hard deadline:** from **1 January 2027** the Function App deployment receives no CIPP updates
 (upstream `docs/.gitbook/includes/ng-note.md`). **Target cutover: week of 16 November 2026**, leaving
 six weeks of buffer.
