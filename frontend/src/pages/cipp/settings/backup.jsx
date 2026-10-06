@@ -283,14 +283,14 @@ const Page = () => {
   return (
     <>
       <CippPageCard
-        title="CIPP Backup"
+        title="omzig.ai Backup"
         backButtonTitle="Settings"
         infoBar={
           <Stack spacing={2}>
             <Alert severity="info" sx={{ mt: 2 }}>
-              Backups are stored in the storage account associated with your CIPP instance. You can
+              Backups are stored in the storage account associated with your omzig.ai instance. You can
               download or restore specific points in time from the list below. Enable automatic
-              backups to have CIPP create daily backups using the scheduler.
+              backups to have omzig.ai create daily backups using the scheduler.
             </Alert>
             <CippInfoBar
               isFetching={backupList.isFetching}

@@ -235,7 +235,10 @@ export const TopNav = (props) => {
     <Box
       component="header"
       sx={{
-        backgroundColor: 'neutral.900',
+        // omzig.ai overlay: liquid-glass header with a brand gradient hairline.
+        backgroundColor: 'rgba(10, 16, 27, 0.82)',
+        backdropFilter: 'blur(20px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
         color: 'common.white',
         position: 'fixed',
         // Pushed down by the maintenance/impersonation banner when one is showing.
@@ -244,6 +247,17 @@ export const TopNav = (props) => {
         top: BANNER_HEIGHT_VAR,
         width: '100%',
         zIndex: (theme) => theme.zIndex.appBar,
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '1px',
+          background:
+            'linear-gradient(90deg, transparent, rgba(95, 192, 255, 0.55) 18%, rgba(127, 208, 255, 0.45) 82%, transparent)',
+          pointerEvents: 'none',
+        },
       }}
     >
       <Stack
@@ -254,8 +268,8 @@ export const TopNav = (props) => {
           minHeight: TOP_NAV_HEIGHT,
           pt: SAFE_AREA_TOP_OFFSET,
 
-          // Mobile: the 24px desktop inset pushed the hamburger far off the left edge —
-          // an 8px inset puts the ☰ glyph on the content gutter line.
+          // Mobile: the 24px desktop inset pushed the hamburger far off the left edge -
+          // an 8px inset puts the menu glyph on the content gutter line.
           px: { xs: 1, md: 3 }
         }}>
         <Stack
@@ -278,19 +292,28 @@ export const TopNav = (props) => {
             minWidth: 0,
             mr: navCollapsed ? 1 : 0
           }}>
-          {/* On phones the logo gives way to the tenant chip — the app's primary scoping
-              control earns the space a 24px decorative link was using. */}
+          {/* On phones the logo gives way to the tenant chip - the app's primary scoping
+              control earns the space a decorative link was using. */}
           {!navCollapsed && (
             <Box
               component={NextLink}
               href={paths.index}
               sx={{
+                // omzig.ai overlay: the wordmark is the supplied 1332x448 artwork,
+                // rendered 112px wide (the sheet's 100px minimum) which makes it
+                // 38px tall, so the box is 40 rather than the upstream 24.
+                // Anchor underline stripped.
                 display: 'inline-flex',
-                height: 24,
-                width: 24,
+                alignItems: 'center',
+                height: 40,
+                width: 'auto',
+                textDecoration: 'none',
               }}
             >
-              <Logo />
+              {/* This bar is backgroundColor rgba(10,16,27,0.82) in BOTH themes, so the
+                  mark must always be the white variant. Letting it follow the theme
+                  served the #0E1420 variant here in light mode at 1.03:1. */}
+              <Logo ground="dark" />
             </Box>
           )}
           {!navCollapsed && (

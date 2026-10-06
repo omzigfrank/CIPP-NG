@@ -37,7 +37,7 @@ const Page = () => {
         </Grid>
         <Grid size={{ lg: 6, md: 8, sm: 12, xs: 12 }}>
           <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-            <CardHeader title="Querying CIPP Logs" />
+            <CardHeader title="Querying omzig.ai Logs" />
             <Divider />
             <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <div>

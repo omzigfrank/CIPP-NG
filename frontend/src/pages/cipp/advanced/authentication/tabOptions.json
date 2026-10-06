@@ -5,7 +5,7 @@
     "icon": "AdminPanelSettings"
   },
   {
-    "label": "CIPP Users",
+    "label": "omzig.ai Users",
     "path": "/cipp/advanced/authentication/cipp-users",
     "icon": "Group"
   },

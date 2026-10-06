@@ -30,7 +30,7 @@ const CippSiemSettings = () => {
 
   return (
     <CippButtonCard
-      title="CIPP Logs Table Access"
+      title="omzig.ai Logs Table Access"
       cardSx={{ display: "flex", flexDirection: "column", height: "100%" }}
       CardButton={
         <Button

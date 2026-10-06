@@ -35,6 +35,12 @@ import { useIsMobileLayout } from '../hooks/use-breakpoint'
 import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import rehypeRaw from 'rehype-raw'
+// omzig.ai security overlay (audit #4): sanitize GitHub-sourced release-note HTML.
+// rehypeRaw parses embedded raw HTML into the tree; without a sanitizer that
+// lets a crafted release body run script (e.g. <img onerror>) in the CIPP
+// origin. rehypeSanitize MUST run after rehypeRaw to strip dangerous tags,
+// attributes and javascript: URLs while keeping safe formatting.
+import rehypeSanitize from 'rehype-sanitize'
 import { unified } from 'unified'
 import packageInfo from '../../public/version.json'
 import { ApiGetCall } from '../api/ApiCall'
@@ -584,7 +590,7 @@ export const ReleaseNotesDialog = forwardRef((_props, ref) => {
                       />
                     ),
                   }}
-                  rehypePlugins={[rehypeRaw]}
+                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
                   remarkPlugins={gfmSupport.plugins}
                 >
                   {formattedReleaseBody}

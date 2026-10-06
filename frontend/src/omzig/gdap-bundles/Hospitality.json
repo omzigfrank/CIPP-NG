@@ -1,0 +1,48 @@
+{
+  "$comment": "omzig.ai GDAP vertical role bundle — Omzig Custom CIPP Build v1.1 §6.1/§17 item 10. Deployed via Add-CIPPGDAPRoleTemplate; missing security groups are auto-created and auto-mapped by the invite wizard.",
+  "TemplateId": "Omzig-Hospitality",
+  "Vertical": "hospitality",
+  "Description": "Hospitality tenants. Leaner bundle: day-to-day identity, device, mail and collaboration administration without privileged-role escalation rights.",
+  "RoleMappings": [
+    {
+      "GroupName": "M365 GDAP Authentication Policy Administrator",
+      "RoleName": "Authentication Policy Administrator",
+      "roleDefinitionId": "0526716b-113d-4c15-b2c8-68e3c22b9f80"
+    },
+    {
+      "GroupName": "M365 GDAP Cloud Application Administrator",
+      "RoleName": "Cloud Application Administrator",
+      "roleDefinitionId": "158c047a-c907-4556-b7ef-446551a6b5f7"
+    },
+    {
+      "GroupName": "M365 GDAP Exchange Administrator",
+      "RoleName": "Exchange Administrator",
+      "roleDefinitionId": "29232cdf-9323-42fd-ade2-1d097af3e4de"
+    },
+    {
+      "GroupName": "M365 GDAP Intune Administrator",
+      "RoleName": "Intune Administrator",
+      "roleDefinitionId": "3a2c62db-5318-420d-8d74-23affee5d9d5"
+    },
+    {
+      "GroupName": "M365 GDAP Security Administrator",
+      "RoleName": "Security Administrator",
+      "roleDefinitionId": "194ae4cb-b126-40b2-bd5b-6091b380977d"
+    },
+    {
+      "GroupName": "M365 GDAP SharePoint Administrator",
+      "RoleName": "SharePoint Administrator",
+      "roleDefinitionId": "f28a1f50-f6e7-4571-818b-6a12f2af6b6c"
+    },
+    {
+      "GroupName": "M365 GDAP Teams Administrator",
+      "RoleName": "Teams Administrator",
+      "roleDefinitionId": "69091246-20e8-4a56-aa4d-066075b2a7a8"
+    },
+    {
+      "GroupName": "M365 GDAP User Administrator",
+      "RoleName": "User Administrator",
+      "roleDefinitionId": "fe930be7-5e62-47db-91af-98c3a49a38b1"
+    }
+  ]
+}

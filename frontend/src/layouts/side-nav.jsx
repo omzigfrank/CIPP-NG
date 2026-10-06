@@ -5,7 +5,6 @@ import { Box, Divider, Drawer, Stack } from '@mui/material'
 import { SideNavItem } from './side-nav-item'
 import { SideNavBookmarks } from './side-nav-bookmarks'
 import { ApiGetCall } from '../api/ApiCall.jsx'
-import { CippSponsor } from '../components/CippComponents/CippSponsor'
 import { useSettings } from '../hooks/use-settings'
 
 import {
@@ -208,7 +207,17 @@ export const SideNav = (props) => {
               onMouseEnter: () => setHovered(true),
               onMouseLeave: () => setHovered(false),
               sx: {
-                backgroundColor: 'background.default',
+                // omzig.ai overlay: liquid-glass rail - the aurora body backdrop
+                // shows through the blur; tokens.css swaps it to a solid
+                // surface under prefers-reduced-transparency.
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(14, 20, 32, 0.62)' : 'rgba(255, 255, 255, 0.66)',
+                backdropFilter: 'blur(20px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+                borderRight: (theme) =>
+                  `1px solid ${
+                    theme.palette.mode === 'dark' ? 'rgba(95, 192, 255, 0.14)' : 'rgba(8, 78, 136, 0.1)'
+                  }`,
                 height: `calc(100% - (${CHROME_TOP_OFFSET}))`,
                 overflowX: 'hidden',
                 overflowY: 'auto',
@@ -259,13 +268,7 @@ export const SideNav = (props) => {
               })}
             </Box>{' '}
             {/* Add this closing tag */}
-            {profile?.clientPrincipal && (
-              <Box
-                sx={{ position: 'sticky', bottom: 0, backgroundColor: 'background.default', pt: 1 }}
-              >
-                <CippSponsor />
-              </Box>
-            )}
+            {/* omzig.ai overlay: upstream CippSponsor block removed from the side nav. */}
           </Box>{' '}
           {/* Closing tag for the parent Box */}
         </Drawer>

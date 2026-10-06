@@ -495,7 +495,7 @@ const CippApiClientManagement = () => {
         </Box>
         <CippDataTable
           actions={actions}
-          title="CIPP-API Clients"
+          title="omzig.ai API Clients"
           data={clientRows}
           isFetching={apiClients.isFetching || egressUsage.isFetching}
           refreshFunction={() => {

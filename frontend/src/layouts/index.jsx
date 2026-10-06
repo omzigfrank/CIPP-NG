@@ -66,7 +66,9 @@ const useMobileNav = () => {
 // supported, vh as the fallback. CHROME_TOP_OFFSET clears the fixed top nav, any
 // maintenance/impersonation banner, and the notch when no banner is covering it.
 const LayoutRoot = styled('div')(({ theme }) => ({
-  backgroundColor: theme.palette.background.default,
+  // omzig.ai overlay: transparent so the fixed aurora backdrop painted on the
+  // <body> (src/omzig/branding/theme.js) shows through behind all content.
+  backgroundColor: 'transparent',
   display: 'flex',
   flex: '1 1 auto',
   maxWidth: '100%',
