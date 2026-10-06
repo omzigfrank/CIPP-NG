@@ -436,6 +436,18 @@ equals upstream except for the overlay: 80 added files and 3 patched upstream fi
 
 **Migrated 2026-10-06 23:15Z.** CIPP now runs as the container Web App `cippwemix` (B3 plan `cippwemix-plan`), built from `omzigfrank/CIPP-NG` by `omzig-image.yml` into `cippwemixacr` and deployed from `omzig-ops/deploy/cipp-ng-webapp.bicep`. `omzig-ops/deploy/Invoke-OmzigNgCutover.ps1 -Rollback` returns to Flex plus the Static Web App until those are decommissioned (2026-10-20). The rest of this section is the decision record.
 
+**Automatic updates (on since 2026-10-06).**
+
+1. `omzig-upstream-sync.yml` runs daily at 07:00 UTC. It merges `CyberDrain/CIPP` main into `omzigfrank/CIPP-NG` main. It keeps our `.github/workflows` and `.github/pull.yml`.
+2. The sync then starts `omzig-image.yml`, which builds `cippwemixacr/cipp:<version>-omzig.<run>`.
+3. Because the repo variable `OMZIG_AUTO_DEPLOY` is `true`, the build deploys that exact tag.
+4. The deploy must report healthy **and** serve the new tag (`/version.json`) within 15 minutes. If it doesn't, the previous image is put back and a critical issue is filed.
+
+- **A merge conflict with the overlay** aborts the merge and files a critical `Upstream sync conflict` issue. Production stays on its version until someone resolves it: see "Unblocking a conflicted sync PR" below. Our edits to upstream files are kept small to make that rare: two timer rows at the top of `backend/Config/CIPPTimers.json`, one line in `build/Dockerfile.release`, and the branding.
+- **To pause deploys** while still building images, set `OMZIG_AUTO_DEPLOY` to `false`. Then deploy by hand with the Omzig Image workflow and `deploy=true`.
+- **To roll back** to any earlier image, run `az webapp config container set -g CIPP -n cippwemix --container-image-name cippwemixacr.azurecr.io/cipp:<tag>` and restart the app.
+
+
 From 11.0, every Function App instance shows a banner: *"This CIPP instance is running on the
 legacy Function App infrastructure, which will soon stop receiving updates."* Upstream's new
 self-hosted model ("CIPPNG") is one Linux container Web App per instance. Their
