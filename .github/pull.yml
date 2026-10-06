@@ -1,11 +1,10 @@
+# omzig.ai: pull[bot] keeps this fork's main in step with upstream CIPP (the CyberDrain/CIPP
+# monorepo). Upstream's copy of this file pointed at KelvinTegelaar:main, which is the
+# frontend-only legacy mirror with unrelated history. A clean merge to main builds a new
+# image (omzig-image.yml); deploying it is gated by OMZIG_AUTO_DEPLOY. Never use hardreset
+# here: it would wipe the omzig.ai overlay.
 version: "1"
 rules:
   - base: main
-    upstream: KelvinTegelaar:main
-    mergeMethod: merge
-  - base: dev
-    upstream: KelvinTegelaar:dev
-    mergeMethod: none
-  - base: website
-    upstream: KelvinTegelaar:website
+    upstream: CyberDrain:main
     mergeMethod: merge
