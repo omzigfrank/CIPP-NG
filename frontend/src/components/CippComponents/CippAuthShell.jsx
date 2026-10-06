@@ -3,15 +3,15 @@ import PropTypes from 'prop-types'
 import { Box, Button, Card, LinearProgress, Stack, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Grid } from '@mui/system'
-import { blue } from '../../theme/colors'
+import { omzigSurfaces, OMZIG_TAGLINE } from '../../omzig/branding/palette'
 
 // Full-viewport shell for the screens a signed-out user can land on: sign-in,
 // access denied, logging in, api offline. PrivateRoute renders those pages as
 // components, so this never sits inside DashboardLayout and owns its own ground.
 //
-// The left panel is deliberately mode-invariant — brand navy and white in both
-// light and dark — the same trick CippImageCard uses with neutral.900. Only the
-// right half flips, and it does so purely through palette tokens.
+// The left panel is deliberately mode-invariant — brand Ink and white in both
+// light and dark. Only the right half flips, and it does so purely through palette
+// tokens.
 
 // 100vh includes the area under iOS Safari's collapsing url bar, which clips the
 // bottom of the stacked mobile layout. An sx array would mean responsive
@@ -21,52 +21,18 @@ const fullHeight = {
   '@supports (min-height: 100dvh)': { minHeight: '100dvh' },
 }
 
-// public/logo.png carries its own white keyline, so it reads on the navy panel
-// untouched — no mask, no plate, no light/dark variant. Do not swap this for
-// src/components/logo.js: that file throws if its inlined payload is altered.
-const CippBrandLockup = () => (
+// The panel is brand Ink in both themes, so this uses the "for-dark" wordmark
+// unconditionally — its ink is #FFFFFF. Deliberately NOT the OmzigLogo component:
+// that one swaps variants on theme.palette.mode, which would put the #0E1420 ink
+// on an Ink panel in light mode and render it invisible.
+//
+// Sized by width so it clears the brand sheet's 100px minimum at every breakpoint.
+const OmzigBrandLockup = () => (
   <Box
     component="img"
-    src="/logo.png"
-    alt="CIPP"
-    sx={{ display: 'block', width: 'auto', height: { xs: 46, md: 96 } }}
-  />
-)
-
-// public/cippy-auth.png is the source artwork with its flat background flood-filled away
-// from the corners — the mug body, the eyes and the little icon interiors are all
-// legitimately white and had to survive, so a plain white-to-alpha knockout was not
-// an option. Decorative only: aria-hidden, and never a link or control.
-const Cippy = () => (
-  <Box
-    component="img"
-    src="/cippy-auth.png"
-    alt=""
-    aria-hidden="true"
-    sx={{
-      position: 'absolute',
-      // Sits on the panel's own content box rather than bleeding off the corner: these
-      // track the panel's px/py, so his right edge lines up with the logo and tagline
-      // above him. Cropping him only lopped off his feet, which reads as a mistake
-      // rather than a peek.
-      right: { xs: 20, md: 48, lg: 64 },
-      // md+: anchored to the bottom corner. Stacked: centred in the header strip, which
-      // is only as tall as its content — bottom-anchoring there pushed his head out
-      // through the top of the panel.
-      top: { xs: '50%', md: 'auto' },
-      bottom: { xs: 'auto', md: 48, lg: 64 },
-      transform: { xs: 'translateY(-50%)', md: 'none' },
-      // Constrained by height on the stacked layout, not width: the strip is sized by
-      // the logo and the tagline's wrap, so a fixed width lets him outgrow it at some
-      // viewports. Capping the height keeps him inside whatever the strip turns out
-      // to be, and auto width preserves his aspect.
-      height: { xs: 46, sm: 60, md: 'auto' },
-      width: { xs: 'auto', md: 132, lg: 168 },
-      zIndex: 0,
-      opacity: 0.95,
-      pointerEvents: 'none',
-      userSelect: 'none',
-    }}
+    src="/omzig-ai-wordmark-for-dark.png"
+    alt="omzig.ai"
+    sx={{ display: 'block', height: 'auto', width: { xs: 132, md: 232 } }}
   />
 )
 
@@ -84,7 +50,7 @@ export const CippAuthShell = ({
   onSecondaryClick,
   busy = false,
   children,
-  tagline = 'CyberDrain Improved Partner Portal',
+  tagline = OMZIG_TAGLINE,
 }) => {
   // href wins over onClick so a caller passing both gets one control, not two
   const hasPrimary = Boolean(actionText) && Boolean(actionHref || onActionClick)
@@ -104,21 +70,21 @@ export const CippAuthShell = ({
             position: 'relative',
             overflow: 'hidden',
             display: 'flex',
-            // On the stacked layout the panel turns into a row: the logo and tagline sit
-            // side by side as one lockup. The mark is only ~70px wide at 46px tall, so
-            // the tagline still gets ~168px even with Cippy's corner reserved.
+            // On the stacked layout the panel turns into a row: the wordmark and
+            // tagline sit side by side as one lockup.
             //
             // md+ centres the tagline on the panel's own vertical midpoint, which lines it
             // up with the sign-in card opposite: both halves have symmetric padding, so
-            // their content boxes share a centre line. The mark and Cippy are both out of
-            // the flow, so the tagline is the only thing being centred.
+            // their content boxes share a centre line. The wordmark is out of the flow,
+            // so the tagline is the only thing being centred.
             flexDirection: { xs: 'row', md: 'column' },
             flexWrap: { xs: 'wrap', md: 'nowrap' },
             alignItems: { xs: 'center', md: 'stretch' },
             justifyContent: { xs: 'flex-start', md: 'center' },
             columnGap: { xs: 2, md: 0 },
             rowGap: { xs: 1, md: 4 },
-            bgcolor: blue.main,
+            // brand Ink, exactly. Was CIPP's #003049 via the upstream `blue` preset.
+            bgcolor: omzigSurfaces.ink,
             color: 'common.white',
             px: { xs: 3, md: 8 },
             py: { xs: 2.5, md: 8 },
@@ -143,11 +109,10 @@ export const CippAuthShell = ({
             },
           }}
         >
-          {/* On md+ the mark leaves the flow and pins to the panel's top-left corner, so
-              the tagline can centre against the panel's full height rather than against
-              the leftover space beneath the mark — the latter left it sitting half the
-              mark's height below the sign-in card opposite. Offsets equal the panel's
-              own px/py. In the stacked row it stays in flow beside the tagline. */}
+          {/* On md+ the wordmark leaves the flow and pins to the panel's top-left
+              corner so the tagline centres against the panel's full height, level with
+              the sign-in card opposite. Offsets equal the panel's own px/py. In the
+              stacked row it stays in flow beside the tagline. */}
           <Box
             sx={{
               position: { xs: 'relative', md: 'absolute' },
@@ -157,7 +122,7 @@ export const CippAuthShell = ({
               flexShrink: 0,
             }}
           >
-            <CippBrandLockup />
+            <OmzigBrandLockup />
           </Box>
 
           <Box
@@ -184,10 +149,9 @@ export const CippAuthShell = ({
                 // 1.5 leaves the wrapped lines floating apart at phone sizes; tighten
                 // them so the tagline reads as one block beside the mark
                 lineHeight: { xs: 1.25, md: 1.5 },
-                // keep the text clear of Cippy, who shares the strip on the stacked
-                // layout; on md+ he sits in the bottom corner and never collides.
-                // ~50px wide at xs and ~65px at sm, plus his 20px offset.
-                pr: { xs: 9, sm: 11, md: 0 },
+                // nothing shares the strip now that the CIPP mascot is gone, so the
+                // tagline gets the full width back
+                pr: 0,
                 textWrap: 'balance',
               }}
             >
@@ -195,9 +159,6 @@ export const CippAuthShell = ({
             </Typography>
           </Box>
 
-          {/* absolute, so he never enters the panel's flow, and sits at zIndex 0
-              beneath the logo and tagline */}
-          <Cippy />
         </Grid>
 
         <Grid

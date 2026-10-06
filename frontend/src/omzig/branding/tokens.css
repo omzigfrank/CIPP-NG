@@ -1,0 +1,146 @@
+/*
+ * omzig.ai brand tokens — source of truth: omzig.ai brand sheet v1, Aug 2026.
+ * JS mirror: src/omzig/branding/palette.js. Values match the omzig.ai
+ * marketing site (src/index.css) exactly, so portal and site are identical.
+ *
+ *   Ink #0E1420 · Electric #35B1FF · Slate #8FA3BD · White #FFFFFF
+ *
+ * Retired: the #3088C8 scale taken from the old logo, and legacy blue #2EA3F2.
+ *
+ * Use rules (all ratios measured):
+ *  - Electric --omzig-electric (#35B1FF) is the accent: wordmark ".ai", fills,
+ *    borders, focus ring on dark, and display text >=24px. It is NOT a small
+ *    text color: 7.80:1 on base Ink but 6.11:1 on the raised ink-3 panel.
+ *  - AAA small text on dark: --omzig-electric-text (#5FC0FF, 7.20:1 worst case)
+ *  - AAA small text on light: --omzig-electric-ink (#084E88, 7.62:1 worst case)
+ *  - Slate and its variants are icon/border colors (3:1 non-text), never text.
+ */
+
+:root {
+  /* Electric ramp — 500 is the brand value, exact */
+  --omzig-electric-50: #eaf5ff; /* 16.68:1 on Ink — AAA */
+  --omzig-electric-100: #d0ecff; /* 15.03:1 on Ink — AAA */
+  --omzig-electric-200: #a9deff; /* 12.79:1 on Ink — AAA */
+  --omzig-electric-300: #7fd0ff; /* 10.85:1 on Ink,  8.51:1 on ink-3 — AAA */
+  --omzig-electric-400: #5fc0ff; /*  9.19:1 on Ink,  7.20:1 on ink-3 — AAA */
+  --omzig-electric-500: #35b1ff; /*  ELECTRIC — non-text + display only */
+  --omzig-electric-600: #1c90db; /*  3.46:1 on white — non-text only */
+  --omzig-electric-700: #0f70cc; /*  4.99:1 on white — focus ring (light) */
+  --omzig-electric-800: #084e88; /*  8.55:1 on white, 7.62:1 on p-3 — AAA */
+  --omzig-electric-900: #063a66; /* 11.64:1 on white — AAA */
+  --omzig-electric-950: #042a4a; /* 14.63:1 on white — AAA */
+
+  --omzig-electric: var(--omzig-electric-500);
+
+  /* Dark surfaces */
+  --omzig-ink: #0e1420; /* brand Ink, exactly */
+  --omzig-ink-2: #16202f; /* cards / panels */
+  --omzig-ink-3: #1e2a3d; /* raised surfaces — contrast worst case */
+  --omzig-line-dark: #263449;
+
+  /* Light surfaces */
+  --omzig-paper: #ffffff; /* brand White */
+  --omzig-paper-2: #f5f7fb;
+  --omzig-paper-3: #eef2f9;
+  --omzig-line-light: #dfe6f0;
+
+  /* Text — AAA on every surface in its mode (worst case ink-3 / paper-3) */
+  --omzig-text-hi-dark: #f2f6fb; /* 13.31:1 — AAA */
+  --omzig-text-lo-dark: #a9bbd1; /*  7.37:1 — AAA, Slate-tinted */
+  --omzig-text-hi-light: #0e1420; /* 16.41:1 — AAA */
+  --omzig-text-lo-light: #43516b; /*  7.12:1 — AAA */
+
+  /* Slate — brand secondary. Non-text use only (icons, borders, dividers). */
+  --omzig-slate: #8fa3bd;
+  --omzig-slate-dark: #9db0c9;
+  --omzig-slate-light: #3d5470;
+
+  /* Tagline, per the sheet. AA not AAA — see OmzigLogo.jsx. */
+  --omzig-tagline-dark: var(--omzig-slate);
+  --omzig-tagline-light: #5a6b82;
+
+  /* Liquid glass (§8.1), retinted from the retired blue to Electric */
+  --omzig-glass-dark: rgba(53, 177, 255, 0.06); /* with blur(20px) saturate(1.4) */
+  --omzig-glass-light: rgba(255, 255, 255, 0.55); /* with blur(24px) saturate(1.6) */
+
+  /* Type — Space Grotesk wordmark/headlines, Calibri body (Carlito backs it
+     up off Windows). Both per the sheet. */
+  --omzig-font-display: 'Space Grotesk', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --omzig-font-body: 'Calibri', 'Carlito', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+
+  /* Semantic. The brand has no teal/green/violet, so these carry status
+     meaning only and are never decoration. */
+  --omzig-success: #0f6e56;
+  --omzig-warn: #854f0b;
+  --omzig-danger: #9e1b1b;
+  --omzig-info: var(--omzig-electric-800);
+
+  /* Focus ring color — light default; overridden on dark below. */
+  --omzig-focus: var(--omzig-electric-700);
+}
+
+/* Dark mode flips text-bearing accents and the focus ring. */
+:root[data-mui-color-scheme='dark'],
+.omzig-dark {
+  --omzig-success: #6ee7c8;
+  --omzig-warn: #fac775;
+  --omzig-danger: #fa9797;
+  --omzig-info: var(--omzig-electric-400);
+  --omzig-focus: var(--omzig-electric-500);
+}
+
+/* Liquid-glass surfaces (§8.1). Components opt in with these classes. */
+.omzig-glass-dark {
+  background: var(--omzig-glass-dark);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+.omzig-glass-light {
+  background: var(--omzig-glass-light);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+}
+
+/* Focus appearance — WCAG 2.4.13: 2px solid outline, >=3:1 against adjacent
+   colors. Electric is 7.80:1 on Ink but only 2.36:1 on white, so light mode
+   steps down to 700 (4.99:1). Using --omzig-focus keeps that automatic. */
+.omzig-focus-ring :focus-visible,
+:root[data-omzig-brand] :focus-visible {
+  outline: 2px solid var(--omzig-focus);
+  outline-offset: 2px;
+}
+
+/* Accessibility fallbacks (§8.3 — non-negotiable) */
+@media (prefers-reduced-motion: reduce) {
+  .omzig-glass-dark,
+  .omzig-glass-light,
+  [data-omzig-motion] {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .omzig-glass-dark {
+    background: var(--omzig-ink-2);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .omzig-glass-light {
+    background: var(--omzig-paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --omzig-glass-dark: var(--omzig-ink-2);
+    --omzig-glass-light: var(--omzig-paper);
+    --omzig-text-lo-dark: var(--omzig-text-hi-dark);
+    --omzig-text-lo-light: var(--omzig-text-hi-light);
+    --omzig-tagline-dark: var(--omzig-text-hi-dark);
+    --omzig-tagline-light: var(--omzig-text-hi-light);
+  }
+}

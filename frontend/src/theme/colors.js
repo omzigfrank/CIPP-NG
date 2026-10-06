@@ -1,4 +1,5 @@
 import { alpha } from "@mui/material/styles";
+import { omzigMuiPreset } from "../omzig/branding/palette";
 
 const withAlphas = (color) => {
   return {
@@ -79,3 +80,6 @@ export const error = withAlphas({
   dark: "#B42318",
   contrastText: "#FFFFFF",
 });
+
+// omzig.ai overlay: brand color preset (see src/omzig/README.md).
+export const omzig = withAlphas({ ...omzigMuiPreset });

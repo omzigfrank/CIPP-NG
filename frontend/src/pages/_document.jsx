@@ -20,15 +20,17 @@ class CustomDocument extends Document {
           <script
             dangerouslySetInnerHTML={{
               __html:
-                "(function(){try{var m='light';var s=null;try{s=JSON.parse(localStorage.getItem('app.settings')||'null')}catch(e){}var v=s&&s.currentTheme&&s.currentTheme.value;if(v==='dark'){m='dark'}else if(!v||v==='browser'){if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){m='dark'}}document.documentElement.style.colorScheme=m;if(m==='dark'){var st=document.createElement('style');st.id='cipp-color-init';st.textContent='html{background-color:#0A0F18}body{background-color:#0A0F18!important;visibility:hidden}';document.head.appendChild(st);setTimeout(function(){var e=document.getElementById('cipp-color-init');if(e){e.textContent='html{background-color:#0A0F18}body{background-color:#0A0F18!important}'}},4000)}}catch(e){}})()",
+                "(function(){try{var m='light';var s=null;try{s=JSON.parse(localStorage.getItem('app.settings')||'null')}catch(e){}var v=s&&s.currentTheme&&s.currentTheme.value;if(v==='dark'){m='dark'}else if(!v||v==='browser'){if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){m='dark'}}document.documentElement.style.colorScheme=m;if(m==='dark'){var st=document.createElement('style');st.id='cipp-color-init';st.textContent='html{background-color:#0E1420}body{background-color:#0E1420!important;visibility:hidden}';document.head.appendChild(st);setTimeout(function(){var e=document.getElementById('cipp-color-init');if(e){e.textContent='html{background-color:#0E1420}body{background-color:#0E1420!important}'}},4000)}}catch(e){}})()",
             }}
           />
           <link rel="manifest" href="/manifest.json" />
-          <meta name="theme-color" content="#ffffff" />
+          {/* Browser chrome follows the brand: White on light, Ink on dark. */}
+          <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+          <meta name="theme-color" content="#0E1420" media="(prefers-color-scheme: dark)" />
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-          <meta name="apple-mobile-web-app-title" content="CIPP" />
+          <meta name="apple-mobile-web-app-title" content="omzig.ai" />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           <link
             rel="preconnect"
@@ -37,10 +39,15 @@ class CustomDocument extends Document {
           <link
             rel="preconnect"
             href="https://fonts.gstatic.com"
+            crossOrigin="anonymous"
           />
+          {/* Brand sheet: Space Grotesk for the wordmark and headlines. 500 is
+              the tagline weight, 700 the wordmark. Body copy is Calibri, which
+              ships with Office/Windows and needs no webfont; Carlito backs it
+              up metrically off Windows. */}
           <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
           />
         </Head>
         <body>

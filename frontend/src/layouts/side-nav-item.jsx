@@ -169,6 +169,25 @@ export const SideNavItem = (props) => {
             whiteSpace: "nowrap",
             width: "calc(100% - 20px)", // Adjust the width to leave space for the bookmark icon
             py: navItemPy,
+            position: "relative",
+            transition: "background-color 160ms ease",
+            // omzig.ai overlay: active items get a gradient pill + glowing accent bar.
+            ...(active && {
+              backgroundImage:
+                "linear-gradient(90deg, rgba(53, 177, 255, 0.18), rgba(53, 177, 255, 0.04))",
+              boxShadow: "inset 0 0 0 1px rgba(95, 192, 255, 0.18)",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                left: 0,
+                top: "20%",
+                bottom: "20%",
+                width: 3,
+                borderRadius: 99,
+                background: "linear-gradient(180deg, #5FC0FF, #7FD0FF)",
+                boxShadow: "0 0 10px rgba(53, 177, 255, 0.75)",
+              },
+            }),
           }}
           {...linkProps}
           onClick={(e) => e.currentTarget.blur()}
@@ -177,7 +196,7 @@ export const SideNavItem = (props) => {
             component="span"
             sx={{
               alignItems: "center",
-              color: "neutral.400",
+              color: active ? "primary.light" : "neutral.400",
               display: "inline-flex",
               flexGrow: 0,
               flexShrink: 0,
@@ -202,7 +221,12 @@ export const SideNavItem = (props) => {
                 textOverflow: "ellipsis",
               }),
               ...(active && {
-                color: "primary.main",
+                // omzig.ai overlay: brighter active text on dark glass, deeper on light.
+                color: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.palette.primary.light
+                    : theme.palette.primary.dark,
+                fontWeight: 600,
               }),
               ...(collapse && {
                 opacity: 0,
