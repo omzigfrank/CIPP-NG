@@ -1,0 +1,48 @@
+# omzig.ai: PSScriptAnalyzer + Pester on the overlay module (backend/Modules/Omzig), and a
+# check that the timer file Craft's scheduler reads still parses with our two sentinels in it.
+name: Omzig QC
+
+on:
+  pull_request:
+    paths:
+      - 'backend/Modules/Omzig/**'
+      - 'backend/Modules/CIPPHTTP/Public/Entrypoints/HTTP Functions/Omzig/**'
+      - 'backend/Config/CIPPTimers.json'
+      - 'build/Dockerfile.release'
+      - '.github/workflows/omzig-qc.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/Modules/Omzig/**'
+      - 'backend/Config/CIPPTimers.json'
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $Findings = Invoke-ScriptAnalyzer -Path ./backend/Modules/Omzig -Recurse -Severity Error
+          $Findings | Format-Table -AutoSize
+          if ($Findings) { throw "$(@($Findings).Count) PSScriptAnalyzer error(s)" }
+
+      - name: Pester
+        shell: pwsh
+        run: |
+          Install-Module Pester -Force -Scope CurrentUser -SkipPublisherCheck
+          $Config = New-PesterConfiguration
+          $Config.Run.Path = './backend/Modules/Omzig/Tests'
+          $Config.Run.Exit = $true
+          $Config.Output.Verbosity = 'Detailed'
+          Invoke-Pester -Configuration $Config
+
+      - name: Overlay is still in the image
+        run: |
+          grep -q '^COPY backend/Modules/Omzig ' build/Dockerfile.release || { echo "::error::build/Dockerfile.release no longer copies backend/Modules/Omzig"; exit 1; }
