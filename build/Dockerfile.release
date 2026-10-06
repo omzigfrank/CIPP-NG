@@ -190,6 +190,8 @@ COPY backend/Modules/AzBobbyTables  /app/API/Modules/AzBobbyTables/
 COPY backend/Modules/DNSHealth      /app/API/Modules/DNSHealth/
 COPY backend/Modules/HuduAPI        /app/API/Modules/HuduAPI/
 COPY backend/Modules/PassPushPosh   /app/API/Modules/PassPushPosh/
+# omzig.ai overlay module (break-glass and GDAP sentinels, PSA/RMM, pricing, tenant view)
+COPY backend/Modules/Omzig          /app/API/Modules/Omzig/
 
 # Backend support directories
 # --chown: the app user owns Config/ so CRAFT can write Config/function-permissions.json
